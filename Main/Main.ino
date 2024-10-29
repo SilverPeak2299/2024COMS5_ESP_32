@@ -20,11 +20,15 @@ const char* CCP_IP = "10.20.30.1";  // Replace with the correct CCP IP
 const int CCP_PORT = 3000 + ID;  // Example port, adjust based on your settings
 
 // Pin Definitions
-const int motorPwmPin = 26;  // Forward motor control
-const int motorDirPin = 27; // Reverse motor control
-const int ledPin = 13;     // Status LED
-const int trigPin = 12;    // Ultrasonic Trigger pin
-const int echoPin = 11;   // Ultrasonic Echo pin
+const int motorPwmPin = 24;  // Forward motor control
+const int motorDirPin = 23; // Reverse motor control
+const int led1Pin = 7;     // Status LED
+const int led2Pin = 8;
+const int led3Pin = 9;
+
+
+const int trigPin = 13;    // Ultrasonic Trigger pin
+const int echoPin = 12;   // Ultrasonic Echo pin
 const int IRPTPin = 14;
 
 
@@ -47,16 +51,20 @@ String brStatus = "STOPC";  // Initial status (stopped with doors closed)
 // Setup function
 void setup() {
   Serial.begin(115200);
+  Serial.println("Serial Open at 115200");
 
   // Initialize pins
+  Serial.println("Attaching Pins");
   pinMode(motorPwmPin, OUTPUT);
   pinMode(motorDirPin, OUTPUT);
-  pinMode(ledPin, OUTPUT);
+  //pinMode(led1Pin, OUTPUT);
+  //pinMode(led2Pin, OUTPUT);
+  //pinMode(led3Pin, OUTPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
   // Start by stopping the motor and closing doors
-  stopMotor();
+  //stopMotor();
   //closeDoors();
 
   // Connect to WiFi
@@ -65,7 +73,7 @@ void setup() {
   // Initialize UDP
   udp.begin(CCP_PORT);
 
-
+  initaliseCcpCON();
 }
 
 void loop() {
@@ -76,16 +84,17 @@ void loop() {
   }
 
   // Perform collision avoidance
-  distance = measureDistance();
-  if (distance < safeDistance) {
-    stopMotor();
-    brStatus = CMD_STOPC;
-    Serial.println("Obstacle detected. Stopping Blade Runner.");
-  }
+  // distance = measureDistance();
+  // if (distance < safeDistance) {
+  //   stopMotor();
+  //   brStatus = CMD_STOPC;
+  //   Serial.println("Obstacle detected. Stopping Blade Runner.");
+  // }
 }
 
 // Connect to WiFi
 void connectWiFi() {
+  Serial.println("Attempting Wifi Connection");
   WiFi.config(Local_IP);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -108,6 +117,7 @@ void handleCCPMessage() {
   deserializeJson(doc, incomingPacket);
   
   String action = doc["message"];
+  Serial.println("Incomming :" + action);
 
   // Process command based on action from Table 2
   if (action == CMD_STOPC) {
@@ -196,9 +206,9 @@ void stopMotor() {
 // Function to flash LED for disconnection
 void flashLED() {
   for (int i = 0; i < 6; i++) {
-    digitalWrite(ledPin, HIGH);
+    digitalWrite(led1Pin, HIGH);
     delay(250);
-    digitalWrite(ledPin, LOW);
+    digitalWrite(led1Pin, LOW);
     delay(250);
   }
   Serial.println("Flashing LED for disconnection.");
@@ -226,6 +236,7 @@ void initaliseCcpCON() {
 
   while(true) {
     if (millis() - last_sent >= 1000) {
+      Serial.println("Sending INIT Request");
       DynamicJsonDocument doc(256);
       doc["client_type"] = "CCP";
       doc["message"] = "INIT";
@@ -255,6 +266,7 @@ void initaliseCcpCON() {
       deserializeJson(doc, incomingPacket);
 
       if(doc["message"] == "INIT") {
+        Serial.println("Connected to ccp");
         break;
       }
     }
