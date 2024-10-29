@@ -7,7 +7,7 @@ const char* ssid = "ENGG2K3K";
 const char* password = "";
 
 
-#Define ID 26
+#define ID 26
 
 // UDP Configuration
 WiFiUDP udp;
@@ -74,7 +74,7 @@ void loop() {
   distance = measureDistance();
   if (distance < safeDistance) {
     stopMotor();
-    brStatus = CMD_STOPC
+    brStatus = CMD_STOPC;
     Serial.println("Obstacle detected. Stopping Blade Runner.");
   }
 }
@@ -101,7 +101,7 @@ void handleCCPMessage() {
   DynamicJsonDocument doc(1024);
   deserializeJson(doc, incomingPacket);
   
-  String action = doc["command"];
+  String action = doc["message"];
 
   // Process command based on action from Table 2
   if (action == CMD_STOPC) {
@@ -203,11 +203,11 @@ void flashLED() {
 void sendStatusUpdate() {
   DynamicJsonDocument doc(256);
   doc["client_type"] = "CCP";
-  doc["command"] = "STAT";
+  doc["message"] = "STAT";
   doc["client_id"] = "BR" + ID;
   doc["status"] = brStatus;
 
-  char buffer[256];
+  uint8_t buffer[256];
   size_t n = serializeJson(doc, buffer);
 
   udp.beginPacket(CCP_IP, CCP_PORT);
@@ -223,10 +223,10 @@ void initaliseCcpCON() {
     if (millis() - last_sent >= 1000) {
       DynamicJsonDocument doc(256);
       doc["client_type"] = "CCP";
-      doc["command"] = "INIT";
+      doc["message"] = "INIT";
       doc["client_id"] = "BR" + ID;
 
-      char buffer[256];
+      uint8_t buffer[256];
       size_t n = serializeJson(doc, buffer);
       udp.beginPacket(CCP_IP, CCP_PORT);
       udp.write(buffer, n);
@@ -236,8 +236,9 @@ void initaliseCcpCON() {
     }
 
     int packetSize = udp.parsePacket();
+
     if (packetSize) {
-      char incomingPacket[255];
+      uint8_t incomingPacket[255];
       int len = udp.read(incomingPacket, 255);
 
       if (len > 0) {
@@ -248,7 +249,7 @@ void initaliseCcpCON() {
       DynamicJsonDocument doc(1024);
       deserializeJson(doc, incomingPacket);
 
-      if(doc["command"] == "INIT") {
+      if(doc["message"] == "INIT") {
         break;
       }
     }
