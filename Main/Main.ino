@@ -8,6 +8,7 @@ const char* password = "";
 
 
 #define ID 26
+#define Local_IP "10.20.30.1.26"
 
 #define Fast 200
 #define Slow 50
@@ -15,7 +16,7 @@ const char* password = "";
 
 // UDP Configuration
 WiFiUDP udp;
-const char* CCP_IP = "10.20.30.1" + ID;  // Replace with the correct CCP IP
+const char* CCP_IP = "10.20.30.1";  // Replace with the correct CCP IP
 const int CCP_PORT = 3000 + ID;  // Example port, adjust based on your settings
 
 // Pin Definitions
@@ -48,16 +49,15 @@ void setup() {
   Serial.begin(115200);
 
   // Initialize pins
-  pinMode(motorPin1, OUTPUT);
-  pinMode(motorPin2, OUTPUT);
-  pinMode(doorPin, OUTPUT);
+  pinMode(motorPwmPin, OUTPUT);
+  pinMode(motorDirPin, OUTPUT);
   pinMode(ledPin, OUTPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
   // Start by stopping the motor and closing doors
   stopMotor();
-  closeDoors();
+  //closeDoors();
 
   // Connect to WiFi
   connectWiFi();
@@ -86,6 +86,7 @@ void loop() {
 
 // Connect to WiFi
 void connectWiFi() {
+  WiFi.config(Local_IP);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -111,7 +112,7 @@ void handleCCPMessage() {
   // Process command based on action from Table 2
   if (action == CMD_STOPC) {
     stopMotor();
-    closeDoors();
+    //closeDoors();
     brStatus = CMD_STOPC;
   } else if (action == CMD_STOPO) {
     stopMotor();
@@ -180,17 +181,17 @@ void stopMotor() {
   Serial.println("Blade Runner stopped.");
 }
 
-// Function to open doors
-void openDoors() {
-  digitalWrite(doorPin, HIGH);
-  Serial.println("Doors opened.");
-}
+// // Function to open doors
+// void openDoors() {
+//   digitalWrite(doorPin, HIGH);
+//   Serial.println("Doors opened.");
+// }
 
-// Function to close doors
-void closeDoors() {
-  digitalWrite(doorPin, LOW);
-  Serial.println("Doors closed.");
-}
+// // Function to close doors
+// void closeDoors() {
+//   digitalWrite(doorPin, LOW);
+//   Serial.println("Doors closed.");
+// }
 
 // Function to flash LED for disconnection
 void flashLED() {
