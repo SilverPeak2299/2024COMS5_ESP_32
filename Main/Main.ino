@@ -9,18 +9,23 @@ const char* password = "";
 
 #define ID 26
 
+#define Fast 200
+#define Slow 50
+#define Stop 0
+
 // UDP Configuration
 WiFiUDP udp;
 const char* CCP_IP = "10.20.30.1" + ID;  // Replace with the correct CCP IP
 const int CCP_PORT = 3000 + ID;  // Example port, adjust based on your settings
 
 // Pin Definitions
-const int motorPin1 = 5;  // Forward motor control
-const int motorPin2 = 18; // Reverse motor control
-const int doorPin = 13;   // Door control pin (for opening/closing)
-const int ledPin = 2;     // Status LED
-const int trigPin = 4;    // Ultrasonic Trigger pin
-const int echoPin = 16;   // Ultrasonic Echo pin
+const int motorPwmPin = 26;  // Forward motor control
+const int motorDirPin = 27; // Reverse motor control
+const int ledPin = 13;     // Status LED
+const int trigPin = 12;    // Ultrasonic Trigger pin
+const int echoPin = 11;   // Ultrasonic Echo pin
+const int IRPTPin = 14;
+
 
 // Collision Avoidance Settings
 const int safeDistance = 20;  // Safe distance in cm
@@ -110,7 +115,7 @@ void handleCCPMessage() {
     brStatus = CMD_STOPC;
   } else if (action == CMD_STOPO) {
     stopMotor();
-    openDoors();
+    //openDoors();
     brStatus = CMD_STOPO;
   } else if (action == CMD_FSLOWC) {
     moveForwardSlow();
@@ -150,29 +155,28 @@ int measureDistance() {
 
 // Function to move Blade Runner forward slowly
 void moveForwardSlow() {
-  digitalWrite(motorPin1, HIGH);
-  digitalWrite(motorPin2, LOW);
+  digitalWrite(motorDirPin, HIGH);
+  analogWrite(motorPwmPin, Slow);
   Serial.println("Moving forward slowly.");
 }
 
 // Function to move Blade Runner forward fast
 void moveForwardFast() {
-  digitalWrite(motorPin1, HIGH);
-  digitalWrite(motorPin2, LOW);
+  digitalWrite(motorDirPin, HIGH);
+  analogWrite(motorPwmPin, Fast);
   Serial.println("Moving forward quickly.");
 }
 
 // Function to move Blade Runner backward slowly
 void moveBackwardSlow() {
-  digitalWrite(motorPin1, LOW);
-  digitalWrite(motorPin2, HIGH);
+  digitalWrite(motorDirPin, LOW);
+  analogWrite(motorPwmPin, Slow);
   Serial.println("Moving backward slowly.");
 }
 
 // Function to stop the Blade Runner
 void stopMotor() {
-  digitalWrite(motorPin1, LOW);
-  digitalWrite(motorPin2, LOW);
+  analogWrite(motorPwmPin, Stop);
   Serial.println("Blade Runner stopped.");
 }
 
